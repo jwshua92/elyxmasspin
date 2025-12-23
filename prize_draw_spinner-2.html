@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elysium 12 Days of Christmas Prize Draw!</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #ffb74d;
+      text-shadow: 0 0 10px #ff9800;
+    }
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .tab-button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #37474f;
+      color: #f0f0f0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+    .tab-button.active { background: #ffb74d; color: #121212; }
+    .tab-button:hover { background: #546e7a; }
+    .tab-content {
+      display: none;
+      width: 100%;
+      max-width: 700px;
+    }
+    .tab-content.active { display: block; }
+    .spinner {
+      background: #1e1e1e;
+      border-radius: 1rem;
+      padding: 2rem;
+      text-align: center;
+      margin: 1rem 0;
+      min-width: 300px;
+      border: 2px solid #ffb74d;
+      box-shadow: 0 0 15px rgba(255,183,77,0.5);
+    }
+    button.spin-button, button.export-button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.75rem;
+      border: none;
+      background: #ffb74d;
+      color: #121212;
+      font-size: 1.2rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s, background 0.3s;
+      margin-right: 0.5rem;
+    }
+    button.spin-button:hover, button.export-button:hover {
+      transform: scale(1.05);
+      background: #ffa726;
+    }
+    .result {
+      margin-top: 1rem;
+      font-size: 2rem;
+      font-weight: bold;
+      min-height: 2.5rem;
+      color: #fff;
+    }
+    .finalResult {
+      margin-top: 1rem;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffb74d;
+      text-align: center;
+    }
+    .counter {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      color: #ffb74d;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      border-radius: 0.5rem;
+      border: 2px solid #ffb74d;
+      padding: 0.5rem;
+      background: #1e1e1e;
+      color: #f0f0f0;
+      font-family: monospace;
+      font-size: 1rem;
+      resize: none;
+    }
+    #winnersData {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎄 Elysium 12 Days of Christmas Prize Draw! 🎄</h1>
+
+  <div class="tabs">
+    <button class="tab-button active" onclick="switchTab('draw')">Draw</button>
+    <button class="tab-button" onclick="switchTab('lists')">Lists</button>
+  </div>
+
+  <div id="draw" class="tab-content active">
+    <div class="spinner">
+      <h2>Name</h2>
+      <div class="result" id="nameResult"></div>
+    </div>
+
+    <div class="spinner">
+      <h2>🎁 Prize 🎁</h2>
+      <div class="result" id="prizeResult"></div>
+      <div class="counter" id="prizeCounter"></div>
+    </div>
+
+    <div class="finalResult" id="finalResult"></div>
+
+    <button class="spin-button" onclick="spinBoth()">Spin!</button>
+  </div>
+
+  <div id="lists" class="tab-content">
+    <h2>Manage Lists</h2>
+    <p>Paste one name or prize per line.</p>
+    <h3>Names</h3>
+    <textarea id="namesArea"></textarea>
+    <h3>Prizes</h3>
+    <textarea id="prizesArea"></textarea>
+    <button class="export-button" id="exportButton">Export Winners CSV</button>
+    <textarea id="winnersData"></textarea>
+  </div>
+
+  <script>
+    let winners = [];
+
+    document.getElementById('exportButton').addEventListener('click', () => {
+      if (winners.length === 0) {
+        alert('No winners yet! Spin first to generate winners.');
+        return;
+      }
+      const csvContent = 'data:text/csv;charset=utf-8,' + winners.map(w => `"${w.name}","${w.prize}"`).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'winners.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+    }
+
+    function getLists() {
+      const names = document.getElementById('namesArea').value.split('\n').filter(n => n.trim() !== '');
+      const prizes = document.getElementById('prizesArea').value.split('\n').filter(p => p.trim() !== '');
+      return { names, prizes };
+    }
+
+    function updateCounter(prizes) {
+      document.getElementById('prizeCounter').textContent = `Prizes remaining: ${prizes.length}`;
+    }
+
+    function spinBoth() {
+      let { names, prizes } = getLists();
+      if (names.length === 0 || prizes.length === 0) return;
+
+      updateCounter(prizes);
+
+      const spinTime = 2800;
+      const nameIndex = Math.floor(Math.random() * names.length);
+      const winner = names[nameIndex];
+      const prizeIndex = Math.floor(Math.random() * prizes.length);
+      const prize = prizes[prizeIndex];
+      const nameEl = document.getElementById('nameResult');
+      const prizeEl = document.getElementById('prizeResult');
+      const finalEl = document.getElementById('finalResult');
+
+      finalEl.textContent = '';
+
+      let count = 0;
+      const nameInterval = setInterval(() => {
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        nameEl.textContent = randomName;
+        count += 100;
+        if (count >= spinTime) {
+          clearInterval(nameInterval);
+          nameEl.textContent = winner;
+        }
+      }, 100);
+
+      let prizeCount = 0;
+      const prizeInterval = setInterval(() => {
+        const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+        prizeEl.textContent = randomPrize;
+        prizeCount += 100;
+        if (prizeCount >= spinTime + 2000) {
+          clearInterval(prizeInterval);
+          prizeEl.textContent = prize;
+          finalEl.textContent = `${winner} wins ${prize}!`;
+
+          winners.push({ name: winner, prize: prize });
+          document.getElementById('winnersData').value = winners.map(w => `${w.name},${w.prize}`).join('\n');
+
+          names.splice(nameIndex, 1);
+          prizes.splice(prizeIndex, 1);
+          document.getElementById('namesArea').value = names.join('\n');
+          document.getElementById('prizesArea').value = prizes.join('\n');
+          updateCounter(prizes);
+        }
+      }, 100);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const { prizes } = getLists();
+      updateCounter(prizes);
+    });
+  </script>
+</body>
+</html>
