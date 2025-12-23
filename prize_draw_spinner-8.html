@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elysium 12 Days of Christmas Prize Draw!</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #ffb74d;
+    }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .tab-button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #37474f;
+      color: #f0f0f0;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab-button.active { background: #ffb74d; color: #121212; }
+    .tab-content { display: none; width: 100%; max-width: 700px; }
+    .tab-content.active { display: block; }
+    .spinner {
+      background: #1e1e1e;
+      border-radius: 1rem;
+      padding: 2rem;
+      text-align: center;
+      margin: 1rem 0;
+      border: 1px solid #ffb74d;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.75rem;
+      border: none;
+      background: #ffb74d;
+      color: #121212;
+      font-size: 1.05rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .result { font-size: 2rem; min-height: 2.5rem; margin-top: 1rem; }
+    .finalResult { font-size: 2rem; color: #ffb74d; text-align: center; margin-top: 1rem; }
+    .counter { color: #ffb74d; margin-top: 0.5rem; }
+    textarea {
+      width: 100%;
+      height: 300px;
+      background: #1e1e1e;
+      color: #f0f0f0;
+      border: 1px solid #ffb74d;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+<h1>🎄 Elysium 12 Days of Christmas Prize Draw! 🎄</h1>
+
+<div class="tabs">
+  <button class="tab-button active" onclick="switchTab('draw')">Draw</button>
+  <button class="tab-button" onclick="switchTab('lists')">Lists</button>
+  <button class="tab-button" onclick="switchTab('winners')">Winners</button>
+</div>
+
+<div id="draw" class="tab-content active">
+  <div class="spinner"><h2>Name</h2><div class="result" id="nameResult">—</div></div>
+  <div class="spinner"><h2>🎁 Prize 🎁</h2><div class="result" id="prizeResult">—</div><div class="counter" id="prizeCounter"></div></div>
+  <div class="finalResult" id="finalResult"></div>
+  <button onclick="spinBoth()">Spin!</button>
+</div>
+
+<div id="lists" class="tab-content">
+  <h2>Manage Lists</h2>
+  <h3>Names</h3>
+  <textarea id="namesArea"></textarea>
+  <h3>Prizes</h3>
+  <textarea id="prizesArea"></textarea>
+</div>
+
+<div id="winners" class="tab-content">
+  <h2>Winners</h2>
+  <button onclick="exportCSV()">Export Winners CSV</button>
+  <button onclick="clearWinners()" style="margin-left:1rem;">Clear Winners</button>
+  <table style="width:100%; margin-top:1rem; border-collapse:collapse;">
+    <thead><tr><th align="left">Name</th><th align="left">Prize</th></tr></thead>
+    <tbody id="winnersTable"></tbody>
+  </table>
+</div>
+
+<script>
+let winners = JSON.parse(localStorage.getItem('winners') || '[]');
+
+function persist() {
+  localStorage.setItem('winners', JSON.stringify(winners));
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+}
+
+function normaliseList(text) {
+  return text
+    .split(/\n/)
+    .map(v => v.trim())
+    .filter(v => v.length > 0);
+}
+
+function getLists() {
+  const names = normaliseList(namesArea.value);
+  const prizes = normaliseList(prizesArea.value);
+
+  console.log('Names count:', names.length);
+  console.log('Prizes count:', prizes.length);
+
+  return { names, prizes };
+}
+
+function updateCounter(prizes) {
+  prizeCounter.textContent = `Prizes remaining: ${prizes.length}`;
+}
+
+function spinBoth() {
+  const { names, prizes } = getLists();
+  if (!names.length || !prizes.length) return;
+
+  finalResult.textContent = '';
+
+  const nameSpin = setInterval(() => {
+    nameResult.textContent = names[Math.floor(Math.random() * names.length)];
+  }, 60);
+
+  const prizeSpin = setInterval(() => {
+    prizeResult.textContent = prizes[Math.floor(Math.random() * prizes.length)];
+  }, 60);
+
+  setTimeout(() => {
+    clearInterval(nameSpin);
+    const winner = names[Math.floor(Math.random() * names.length)];
+    nameResult.textContent = winner;
+
+    setTimeout(() => {
+      clearInterval(prizeSpin);
+      const prize = prizes[Math.floor(Math.random() * prizes.length)];
+      prizeResult.textContent = prize;
+
+      finalResult.textContent = `${winner} wins ${prize}!`;
+
+      winners.push({ name: winner, prize });
+      persist();
+      renderWinners();
+
+      // remove ONLY ONE occurrence of the winner
+      const nameIndexToRemove = names.indexOf(winner);
+      if (nameIndexToRemove !== -1) {
+        names.splice(nameIndexToRemove, 1);
+      }
+      namesArea.value = names.join('\n');
+      // remove ONLY ONE occurrence of the prize
+      const prizeIndexToRemove = prizes.indexOf(prize);
+      if (prizeIndexToRemove !== -1) {
+        prizes.splice(prizeIndexToRemove, 1);
+      }
+      prizesArea.value = prizes.join('\n');
+      updateCounter(normaliseList(prizesArea.value));
+    }, 1200);
+  }, 1600);
+}
+
+function renderWinners() {
+  winnersTable.innerHTML = '';
+  winners.forEach(w => {
+    winnersTable.innerHTML += `<tr><td>${w.name}</td><td>${w.prize}</td></tr>`;
+  });
+}
+
+function exportCSV() {
+  if (!winners.length) return alert('No winners yet');
+  const csv = winners.map(w => `"${w.name}","${w.prize}"`).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'winners.csv';
+  a.click();
+}
+
+function clearWinners() {
+  if (!confirm('Clear all winners?')) return;
+  winners = [];
+  persist();
+  renderWinners();
+}
+
+window.addEventListener('beforeunload', e => {
+  if (winners.length) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderWinners();
+  const { prizes } = getLists();
+  updateCounter(prizes);
+});
+</script>
+</body>
+</html>
