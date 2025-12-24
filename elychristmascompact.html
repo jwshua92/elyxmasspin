@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elysium 12 Days of Christmas Prize Draw!</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin: 1rem 0;
+      color: #ffb74d;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tab-button {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #37474f;
+      color: #f0f0f0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .tab-button.active {
+      background: #ffb74d;
+      color: #121212;
+    }
+
+    .tab-content {
+      display: none;
+      width: 100%;
+    }
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .spinner {
+      background: #1e1e1e;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      text-align: center;
+      margin: 0.5rem 0;
+      border: 1px solid #ffb74d;
+      width: 100%;
+      max-width: 500px;
+      height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .spinner h2 {
+      margin: 0.3rem 0 0 0;
+      font-size: 1.4rem;
+      color: #ffb74d;
+    }
+
+    .carousel-container {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0.3rem 0;
+    }
+
+    .carousel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px; /* Slightly tighter gap for better fit */
+      width: 100%;
+    }
+
+    .carousel-item {
+      font-size: 1.4rem;
+      padding: 0.2rem 1rem;
+      opacity: 0.4;
+      filter: blur(1.2px);
+      transition: all 0.4s ease;
+      user-select: none;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .carousel-item.active {
+      font-size: 2.1rem;
+      font-weight: bold;
+      opacity: 1;
+      filter: blur(0);
+      color: #ffb74d;
+      padding: 0.2rem 1rem;
+    }
+
+    /* Reduced size for above/below to prevent clipping */
+    .carousel-item.above,
+    .carousel-item.below {
+      font-size: 1.4rem; /* Smaller than before */
+      opacity: 0.6;
+      filter: blur(0.7px);
+      padding: 0.2rem 1rem;
+    }
+
+    .carousel.single .carousel-item {
+      font-size: 2.1rem;
+      font-weight: bold;
+      opacity: 1;
+      filter: blur(0);
+      color: #ffb74d;
+      padding: 0.2rem 1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.75rem;
+      border: none;
+      background: #ffb74d;
+      color: #121212;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      min-width: 130px;
+    }
+    button:disabled {
+      background: #555;
+      color: #aaa;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .finalResult {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #ffb74d;
+      text-align: center;
+      margin: 1.5rem 0;
+      line-height: 1.3;
+      min-height: 3rem;
+      padding: 0.5rem;
+      width: 100%;
+    }
+
+    .counter {
+      color: #ffb74d;
+      margin-top: 0.3rem;
+      font-size: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 250px;
+      background: #1e1e1e;
+      color: #f0f0f0;
+      border: 1px solid #ffb74d;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      resize: none;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+      background: #1e1e1e;
+      border: 1px solid #ffb74d;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid #37474f;
+    }
+
+    th {
+      background: #37474f;
+      color: #ffb74d;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 500px) {
+      h1 { font-size: 1.8rem; margin: 0.8rem 0; }
+      .spinner { height: 160px; padding: 0.6rem; }
+      .spinner h2 { font-size: 1.2rem; }
+      .carousel-item { font-size: 1.2rem; padding: 0.2rem 0.8rem; }
+      .carousel-item.active { font-size: 1.8rem; padding: 0.2rem 0.8rem; }
+      .carousel-item.above, .carousel-item.below { 
+        font-size: 1.2rem; /* Even smaller on mobile to avoid clipping */
+        padding: 0.2rem 0.8rem; 
+      }
+      .carousel { gap: 5px; }
+      .finalResult { font-size: 1.8rem; margin: 1rem 0; }
+      button { padding: 0.5rem 1rem; font-size: 0.95rem; min-width: 110px; }
+      .button-group { gap: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>🎄 Elysium 12 Days of Christmas Prize Draw! 🎄</h1>
+
+  <div class="tabs">
+    <button class="tab-button active" onclick="switchTab('draw')">Draw</button>
+    <button class="tab-button" onclick="switchTab('lists')">Lists</button>
+    <button class="tab-button" onclick="switchTab('winners')">Winners</button>
+  </div>
+
+  <div id="draw" class="tab-content active">
+    <div class="spinner">
+      <h2>Name</h2>
+      <div class="carousel-container">
+        <div id="nameCarousel" class="carousel single"></div>
+      </div>
+    </div>
+
+    <div class="spinner">
+      <h2>🎁 Prize 🎁</h2>
+      <div class="carousel-container">
+        <div id="prizeCarousel" class="carousel single"></div>
+      </div>
+      <div class="counter" id="prizeCounter"></div>
+    </div>
+
+    <div class="finalResult" id="finalResult"></div>
+
+    <div class="button-group">
+      <button id="spinPrizeBtn" onclick="spinPrize()">Spin Prize</button>
+      <button id="spinNameBtn" onclick="spinName()" disabled>Spin Name</button>
+    </div>
+  </div>
+
+  <div id="lists" class="tab-content">
+    <h2>Manage Lists</h2>
+    <h3>Names</h3>
+    <textarea id="namesArea"></textarea>
+    <h3>Prizes</h3>
+    <textarea id="prizesArea"></textarea>
+  </div>
+
+  <div id="winners" class="tab-content">
+    <h2>Winners</h2>
+
+    <div class="button-group">
+      <button onclick="exportCSV()">Export Winners CSV</button>
+      <button onclick="clearWinners()">Clear Winners</button>
+    </div>
+
+    <table>
+      <thead><tr><th>Name</th><th>Prize</th></tr></thead>
+      <tbody id="winnersTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Script unchanged — all fixes are in CSS
+const nameCarousel = document.getElementById('nameCarousel');
+const prizeCarousel = document.getElementById('prizeCarousel');
+const finalResult = document.getElementById('finalResult');
+const namesArea = document.getElementById('namesArea');
+const prizesArea = document.getElementById('prizesArea');
+const prizeCounter = document.getElementById('prizeCounter');
+const spinNameBtn = document.getElementById('spinNameBtn');
+const winnersTable = document.getElementById('winnersTable');
+
+let audioCtx;
+function playTick() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 600;
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.04, now + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.05);
+}
+
+let winners = JSON.parse(localStorage.getItem('winners') || '[]');
+
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function uniqueForSpin(array) {
+  return [...new Set(array)];
+}
+
+function persistWinners() {
+  localStorage.setItem('winners', JSON.stringify(winners));
+}
+
+function persistLists() {
+  localStorage.setItem('namesList', namesArea.value);
+  localStorage.setItem('prizesList', prizesArea.value);
+}
+
+function restoreLists() {
+  const savedNames = localStorage.getItem('namesList');
+  const savedPrizes = localStorage.getItem('prizesList');
+  if (savedNames !== null) namesArea.value = savedNames;
+  if (savedPrizes !== null) prizesArea.value = savedPrizes;
+}
+
+namesArea.addEventListener('input', persistLists);
+prizesArea.addEventListener('input', persistLists);
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+}
+
+function normaliseList(text) {
+  return text.split(/\n/).map(v => v.trim()).filter(v => v.length > 0);
+}
+
+function getLists() {
+  const rawNames = normaliseList(namesArea.value);
+  const rawPrizes = normaliseList(prizesArea.value);
+  return {
+    names: shuffle(rawNames),
+    prizes: shuffle(rawPrizes),
+    namesNoDupes: uniqueForSpin(rawNames),
+    prizesNoDupes: uniqueForSpin(rawPrizes)
+  };
+}
+
+function updateCounter(prizes) {
+  prizeCounter.textContent = `Prizes remaining: ${prizes.length}`;
+}
+
+function renderSingle(carouselEl, text) {
+  carouselEl.classList.add('single');
+  carouselEl.innerHTML = `<div class="carousel-item">${text || '—'}</div>`;
+}
+
+function renderSpinning(carouselEl, items, currentIndex) {
+  carouselEl.classList.remove('single');
+  carouselEl.innerHTML = '';
+  const len = items.length;
+  if (len === 0) return renderSingle(carouselEl, '—');
+
+  const aboveIdx = (currentIndex - 1 + len) % len;
+  const belowIdx = (currentIndex + 1) % len;
+
+  const above = document.createElement('div');
+  above.className = 'carousel-item above';
+  above.textContent = items[aboveIdx];
+  carouselEl.appendChild(above);
+
+  const active = document.createElement('div');
+  active.className = 'carousel-item active';
+  active.textContent = items[currentIndex];
+  carouselEl.appendChild(active);
+
+  const below = document.createElement('div');
+  below.className = 'carousel-item below';
+  below.textContent = items[belowIdx];
+  carouselEl.appendChild(below);
+}
+
+let selectedPrize = null;
+let spinning = false;
+let lastWinner = null;
+let lastPrize = null;
+
+function initCarousels() {
+  renderSingle(nameCarousel, lastWinner);
+  renderSingle(prizeCarousel, lastPrize);
+}
+
+function spinPrize() {
+  spinNameBtn.disabled = true;
+  finalResult.textContent = '';
+  if (spinning) return;
+
+  const { prizesNoDupes: prizes } = getLists();
+  if (!prizes.length) return;
+
+  spinning = true;
+  selectedPrize = null;
+
+  let delay = 40;
+  let elapsed = 0;
+  let currentIndex = 0;
+
+  function spin() {
+    currentIndex = Math.floor(Math.random() * prizes.length);
+    renderSpinning(prizeCarousel, prizes, currentIndex);
+    playTick();
+
+    elapsed += delay;
+    delay += 8;
+
+    if (elapsed < 5000) {
+      setTimeout(spin, delay);
+    } else {
+      selectedPrize = prizes[currentIndex];
+      lastPrize = selectedPrize;
+      renderSingle(prizeCarousel, selectedPrize);
+      spinNameBtn.disabled = false;
+      spinning = false;
+    }
+  }
+
+  spin();
+}
+
+function spinName() {
+  if (spinning || !selectedPrize) return;
+
+  const { namesNoDupes: names } = getLists();
+  if (!names.length) return;
+
+  spinning = true;
+  spinNameBtn.disabled = true;
+
+  let delay = 40;
+  let elapsed = 0;
+  let currentIndex = 0;
+
+  function spin() {
+    currentIndex = Math.floor(Math.random() * names.length);
+    renderSpinning(nameCarousel, names, currentIndex);
+    playTick();
+
+    elapsed += delay;
+    delay += 8;
+
+    if (elapsed < 5000) {
+      setTimeout(spin, delay);
+    } else {
+      const winner = names[currentIndex];
+      lastWinner = winner;
+      renderSingle(nameCarousel, winner);
+      finalResult.textContent = `${winner} wins ${selectedPrize}!`;
+
+      const { names: fullNames, prizes: fullPrizes } = getLists();
+      const nameIndex = fullNames.indexOf(winner);
+      if (nameIndex !== -1) fullNames.splice(nameIndex, 1);
+      namesArea.value = fullNames.join('\n');
+
+      const prizeIndex = fullPrizes.indexOf(selectedPrize);
+      if (prizeIndex !== -1) fullPrizes.splice(prizeIndex, 1);
+      prizesArea.value = fullPrizes.join('\n');
+
+      winners.push({ name: winner, prize: selectedPrize });
+      persistWinners();
+      persistLists();
+      renderWinners();
+      updateCounter(fullPrizes);
+
+      selectedPrize = null;
+      spinning = false;
+    }
+  }
+
+  spin();
+}
+
+function renderWinners() {
+  winnersTable.innerHTML = '';
+  winners.forEach(w => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${w.name}</td><td>${w.prize}</td>`;
+    winnersTable.appendChild(row);
+  });
+}
+
+function exportCSV() {
+  if (!winners.length) return alert('No winners yet');
+  const csv = winners.map(w => `"${w.name}","${w.prize}"`).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'winners.csv';
+  a.click();
+}
+
+function clearWinners() {
+  if (!confirm('Clear all winners?')) return;
+  winners = [];
+  lastWinner = null;
+  lastPrize = null;
+  persistWinners();
+  renderWinners();
+  initCarousels();
+}
+
+window.addEventListener('beforeunload', e => {
+  if (winners.length) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  restoreLists();
+  renderWinners();
+  initCarousels();
+  const { prizes } = getLists();
+  updateCounter(prizes);
+});
+</script>
+</body>
+</html>
